@@ -10,9 +10,12 @@
 * Update      : Cavon    2016-09-23    New release
 **********************************************************************
 '''
-try:
-    import RPi.GPIO as GPIO
-except ImportError:
+def _load_gpio():
+    try:
+        import RPi.GPIO as GPIO
+        return GPIO
+    except ImportError:
+        pass
     try:
         import lgpio as _lgpio
 
@@ -73,13 +76,15 @@ except ImportError:
             def stop(self):
                 _lgpio.tx_pwm(self._get_handle(), self._channel, self._freq, 0)
 
-        GPIO = _LgpioCompat()
+        return _LgpioCompat()
     except ImportError:
         raise ImportError(
             "Neither RPi.GPIO nor lgpio is installed. "
             "Install one with: sudo apt-get install python3-lgpio  "
             "or: pip install RPi.GPIO"
         )
+
+GPIO = None  # lazily initialized on first Motor instantiation
 
 class Motor(object):
 	''' Motor driver class
@@ -96,6 +101,9 @@ class Motor(object):
 
 	def __init__(self, direction_channel, pwm=None, offset=True):
 		'''Init a motor on giving dir. channel and PWM channel.'''
+		global GPIO
+		if GPIO is None:
+			GPIO = _load_gpio()
 		self._debug_("Debug on")
 		self.direction_channel = direction_channel
 		self._pwm = pwm
@@ -190,6 +198,9 @@ class Motor(object):
 
 def test():
 	import time
+	global GPIO
+	if GPIO is None:
+		GPIO = _load_gpio()
 
 	print("********************************************")
 	print("*                                          *")
