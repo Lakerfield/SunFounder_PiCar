@@ -62,6 +62,8 @@ class PWM(object):
         time.sleep(0.005)
 
         mode1 = self._read_byte_data(self._MODE1)
+        if mode1 is None:
+            return
         mode1 = mode1 & ~self._SLEEP
         self._write_byte_data(self._MODE1, mode1)
         time.sleep(0.005)
@@ -154,6 +156,8 @@ class PWM(object):
         self._debug_('Final pre-scale: %d' % prescale)
 
         old_mode = self._read_byte_data(self._MODE1);
+        if old_mode is None:
+            return
         new_mode = (old_mode & 0x7F) | 0x10
         self._write_byte_data(self._MODE1, new_mode)
         self._write_byte_data(self._PRESCALE, int(math.floor(prescale)))
