@@ -170,7 +170,7 @@ class Motor(object):
 		self._debug_('Set offset to %d' % self._offset)
 
 	@property
-	def debug(self, debug):
+	def debug(self):
 		return self._DEBUG
 
 	@debug.setter
