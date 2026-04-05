@@ -12,9 +12,9 @@ def servo_install():
         print("servo-install takes no value")
         usage()
     print("Servo now is set to 90 degree.")
-    servo0 = Servo.Servo(0, bus_number=1)
-    servo1 = Servo.Servo(1, bus_number=1)
-    servo2 = Servo.Servo(2, bus_number=1)
+    servo0 = Servo.Servo(0)
+    servo1 = Servo.Servo(1)
+    servo2 = Servo.Servo(2)
     for i in range(90, -1, -1):
         servo0.write(i)
         servo1.write(i)
@@ -77,6 +77,6 @@ class ADC(PCF8591.PCF8591):
     pass
 
 def setup():
-    pwm=PCA9685.PWM(bus_number=1)
+    pwm=PCA9685.PWM()
     pwm.setup()
     pwm.frequency = 60
