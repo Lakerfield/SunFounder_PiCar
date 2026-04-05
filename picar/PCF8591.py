@@ -14,20 +14,8 @@ try:
     import smbus2 as smbus
 except ImportError:
     import smbus
-import os
 import time
-
-
-def get_i2c_bus_number():
-    '''Auto-detect the I2C bus number by scanning /dev/ for i2c-* devices.
-    Returns the lowest bus number found, or 1 as a fallback.'''
-    try:
-        devices = [f for f in os.listdir('/dev/') if f.startswith('i2c-')]
-        if devices:
-            return sorted([int(d.split('-')[1]) for d in devices])[0]
-    except Exception:
-        pass
-    return 1
+from .i2c_utils import get_i2c_bus_number
 
 
 class PCF8591(object):
