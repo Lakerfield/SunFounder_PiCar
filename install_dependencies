@@ -7,25 +7,25 @@ if [ "$(whoami)" != "root" ] ; then
     exit 1
 fi
 
-sudo apt-get update
+apt-get update
 
 echo "Installing python3-pip ..."
-sudo apt-get install python3-pip -y
+apt-get install python3-pip -y
 
 echo "Installing python3-smbus and git ..."
-sudo apt-get install python3-smbus git -y
+apt-get install python3-smbus git -y
 
 # python3-rpi-lgpio provides RPi.GPIO compatibility on Bookworm/Trixie
 # (replaces the removed RPi.GPIO package)
 echo "Installing python3-rpi-lgpio (GPIO library for Bookworm/Trixie) ..."
-if sudo apt-get install python3-rpi-lgpio -y; then
+if apt-get install python3-rpi-lgpio -y; then
     echo "Successfully installed python3-rpi-lgpio"
 else
     echo "python3-rpi-lgpio not available on this OS, skipping"
 fi
 
 echo "Installing PiCar module ..."
-sudo python3 setup.py install
+python3 setup.py install
 
 ###################################
 # Enable I2C1
@@ -37,13 +37,14 @@ else
     BOOT_CONFIG="/boot/config.txt"
 fi
 echo "Enabling I2C (config: $BOOT_CONFIG) ..."
-egrep -v "^#|^$" $BOOT_CONFIG > /tmp/config.txt.temp
-if grep -q 'dtparam=i2c_arm=on' /tmp/config.txt.temp; then
+TMPFILE=$(mktemp)
+grep -Ev "^#|^$" $BOOT_CONFIG > "$TMPFILE"
+if grep -q 'dtparam=i2c_arm=on' "$TMPFILE"; then
     echo "i2c_arm parameter already set, skipping"
 else
     echo 'dtparam=i2c_arm=on' >> $BOOT_CONFIG
 fi
-rm /tmp/config.txt.temp
+rm "$TMPFILE"
 echo "Done"
 
 echo ""
