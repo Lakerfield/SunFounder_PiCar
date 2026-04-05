@@ -10,6 +10,8 @@
 * Update      : Cavon    2016-09-23    New release
 **********************************************************************
 '''
+import os
+os.environ.setdefault('LG_WORKDIR', '/tmp')
 import RPi.GPIO as GPIO
 
 class Motor(object):

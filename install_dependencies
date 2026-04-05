@@ -1,0 +1,51 @@
+#!/bin/bash
+# Installation script for SunFounder PiCar
+# Tested on Raspbian Trixie / Bookworm
+
+if [ "$(whoami)" != "root" ] ; then
+    echo "You must run this script as root."
+    exit 1
+fi
+
+sudo apt-get update
+
+echo "Installing python3-pip ..."
+sudo apt-get install python3-pip -y
+
+echo "Installing python3-smbus and git ..."
+sudo apt-get install python3-smbus git -y
+
+# python3-rpi-lgpio provides RPi.GPIO compatibility on Bookworm/Trixie
+# (replaces the removed RPi.GPIO package)
+echo "Installing python3-rpi-lgpio (GPIO library for Bookworm/Trixie) ..."
+if sudo apt-get install python3-rpi-lgpio -y; then
+    echo "Successfully installed python3-rpi-lgpio"
+else
+    echo "python3-rpi-lgpio not available on this OS, skipping"
+fi
+
+echo "Installing PiCar module ..."
+sudo python3 setup.py install
+
+###################################
+# Enable I2C1
+###################################
+# Add lines to boot config (path changed in Bookworm/Trixie)
+if [ -f "/boot/firmware/config.txt" ]; then
+    BOOT_CONFIG="/boot/firmware/config.txt"
+else
+    BOOT_CONFIG="/boot/config.txt"
+fi
+echo "Enabling I2C (config: $BOOT_CONFIG) ..."
+egrep -v "^#|^$" $BOOT_CONFIG > /tmp/config.txt.temp
+if grep -q 'dtparam=i2c_arm=on' /tmp/config.txt.temp; then
+    echo "i2c_arm parameter already set, skipping"
+else
+    echo 'dtparam=i2c_arm=on' >> $BOOT_CONFIG
+fi
+rm /tmp/config.txt.temp
+echo "Done"
+
+echo ""
+echo "Installation complete."
+echo "Changes may require a reboot to take effect."
