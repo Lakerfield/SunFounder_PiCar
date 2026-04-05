@@ -17,6 +17,7 @@ except ImportError:
     import smbus
 import time
 import math
+from ..i2c_utils import get_i2c_bus_number
 
 class PWM(object):
     """A PWM control class for PCA9685."""
@@ -44,8 +45,10 @@ class PWM(object):
     _DEBUG = False
     _DEBUG_INFO = 'DEBUG "PCA9685.py":'
 
-    def __init__(self, bus_number=1, address=0x40):
+    def __init__(self, bus_number=None, address=0x40):
         self.address = address
+        if bus_number is None:
+            bus_number = get_i2c_bus_number()
         self.bus_number = bus_number
         self.bus = smbus.SMBus(self.bus_number)
 

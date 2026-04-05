@@ -15,6 +15,7 @@ try:
 except ImportError:
     import smbus
 import time
+from .i2c_utils import get_i2c_bus_number
 
 
 class PCF8591(object):
@@ -30,8 +31,10 @@ class PCF8591(object):
     RPI_REVISION_3_MODULE_B  = ["a02082", "a22082"]
     RPI_REVISION_3_MODULE_BP = ["a020d3"]
 
-    def __init__(self, address=0x48, bus_number=1):
+    def __init__(self, address=0x48, bus_number=None):
         self.address = address
+        if bus_number is None:
+            bus_number = get_i2c_bus_number()
         self._bus_number = bus_number
         self.bus = smbus.SMBus(self._bus_number)
 
