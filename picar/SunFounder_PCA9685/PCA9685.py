@@ -115,30 +115,47 @@ class PWM(object):
         print("Your PCA9685 address is set to 0x%02X" % self.address)
         print("i2cdetect output:")
         print(output)
-        outputs = output.split('\n')[1:]
-        addresses = []
-        for tmp_addresses in outputs:
-            tmp_addresses = tmp_addresses.split(':')
-            if len(tmp_addresses) < 2:
-                continue
-            else:
-                tmp_addresses = tmp_addresses[1]
-            tmp_addresses = tmp_addresses.strip().split(' ')
-            for address in tmp_addresses:
-                if address != '--':
-                    addresses.append(address)
-        print("Conneceted i2c device:")
+        addresses = self._parse_i2cdetect(output)
+        print("Connected i2c device:")
         if addresses == []:
             print("None")
         else:
             for address in addresses:
                 print("  0x%s" % address)
-        if "%02X" % self.address in addresses:
-            print("Wierd, I2C device is connected, Try to run the program again, If problem stills, email this information to support@sunfounder.com")
+        if "%02x" % self.address in addresses:
+            print("Weird, I2C device is connected, Try to run the program again, If problem still exists, email this information to support@sunfounder.com")
         else:
             print("Device is missing.")
+            # Check if the device appears on a different bus
+            other_buses = []
+            for device in devices:
+                if device.startswith('i2c-'):
+                    try:
+                        bus_num = int(device.split('-')[1])
+                        if bus_num != self.bus_number:
+                            other_buses.append(bus_num)
+                    except (ValueError, IndexError):
+                        pass
+            for bus_num in sorted(other_buses):
+                _, other_output = self._run_command("i2cdetect -y %s" % bus_num)
+                other_addresses = self._parse_i2cdetect(other_output)
+                if "%02x" % self.address in other_addresses:
+                    print("NOTE: PCA9685 found on I2C bus %d instead of bus %d." % (bus_num, self.bus_number))
+                    print("The auto-detected bus may be wrong for your hardware.")
             print("Check the address or wiring of PCA9685 Server driver, or email this information to support@sunfounder.com")
             quit()
+
+    def _parse_i2cdetect(self, output):
+        '''Parse i2cdetect output and return a list of detected I2C addresses.'''
+        addresses = []
+        for line in output.split('\n')[1:]:
+            parts = line.split(':')
+            if len(parts) < 2:
+                continue
+            for token in parts[1].split():
+                if token != '--' and token != 'UU':
+                    addresses.append(token.lower())
+        return addresses
 
     @property
     def frequency(self):
