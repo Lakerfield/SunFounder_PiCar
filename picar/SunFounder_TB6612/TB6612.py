@@ -10,7 +10,76 @@
 * Update      : Cavon    2016-09-23    New release
 **********************************************************************
 '''
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except ImportError:
+    try:
+        import lgpio as _lgpio
+
+        class _LgpioCompat(object):
+            BCM = 11
+            OUT = 0
+            HIGH = 1
+            LOW = 0
+
+            def __init__(self):
+                self._handle = None
+                self._claimed = set()
+
+            def _get_handle(self):
+                if self._handle is None:
+                    # Try gpiochip4 first (Pi 5), fall back to gpiochip0 (Pi 4 and earlier)
+                    for chip in (4, 0):
+                        try:
+                            self._handle = _lgpio.gpiochip_open(chip)
+                            break
+                        except Exception:
+                            pass
+                    if self._handle is None:
+                        raise OSError("Cannot open any GPIO chip via lgpio")
+                return self._handle
+
+            def setwarnings(self, flag):
+                pass
+
+            def setmode(self, mode):
+                pass
+
+            def setup(self, channel, direction, initial=0):
+                if direction == self.OUT:
+                    h = self._get_handle()
+                    if channel not in self._claimed:
+                        _lgpio.gpio_claim_output(h, channel, 0, int(initial))
+                        self._claimed.add(channel)
+
+            def output(self, channel, value):
+                _lgpio.gpio_write(self._get_handle(), channel, 1 if value else 0)
+
+            def PWM(self, channel, frequency):
+                return _LgpioPWM(self._get_handle, channel, frequency)
+
+        class _LgpioPWM(object):
+            def __init__(self, get_handle, channel, frequency):
+                self._get_handle = get_handle
+                self._channel = channel
+                self._freq = frequency
+
+            def start(self, duty_cycle):
+                _lgpio.tx_pwm(self._get_handle(), self._channel, self._freq, duty_cycle)
+
+            def ChangeDutyCycle(self, duty_cycle):
+                _lgpio.tx_pwm(self._get_handle(), self._channel, self._freq, duty_cycle)
+
+            def stop(self):
+                _lgpio.tx_pwm(self._get_handle(), self._channel, self._freq, 0)
+
+        GPIO = _LgpioCompat()
+    except ImportError:
+        raise ImportError(
+            "Neither RPi.GPIO nor lgpio is installed. "
+            "Install one with: sudo apt-get install python3-lgpio  "
+            "or: pip install RPi.GPIO"
+        )
 
 class Motor(object):
 	''' Motor driver class

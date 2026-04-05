@@ -11,7 +11,10 @@
 **********************************************************************
 '''
 
-import smbus
+try:
+    import smbus2 as smbus
+except ImportError:
+    import smbus
 import time
 import math
 

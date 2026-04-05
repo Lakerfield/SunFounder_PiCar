@@ -39,13 +39,17 @@ setup(
         'Topic :: Software Development :: Build Tools',
 
         # Pick your license as you wish (should match "license" above)
-        'License :: OSI Approved :: GNU License',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
 
+        'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 2.7',
     ],
 
     keywords='sunfounder raspberry pi robot car',
     packages=find_packages(exclude=['docs', 'tests*']),
+    install_requires=[
+        'smbus2',
+    ],
 
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
